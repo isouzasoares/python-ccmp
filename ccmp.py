@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import requests
-from requests.auth import AuthBase
 
-BASE_URL = "https://login.eccmp.com/"
-TOKEN_URL = BASE_URL + "services2/authorization/oAuth2/Token"
+BASE_URL = "https://login.eccmp.com/services2/api/"
+TOKEN_URL = "https://login.eccmp.com/services2/authorization/oAuth2/Token"
 
 
-class OAuthCcmp(AuthBase):
+class OAuthCcmp(requests.auth.AuthBase):
 
     def __init__(self, access_token):
         self.access_token = access_token
@@ -19,7 +18,7 @@ class OAuthCcmp(AuthBase):
 
 class Ccmp(object):
 
-    def __init__(self, username, password, grant_type,
+    def __init__(self, username, password, grant_type="password",
                  base_url=None, token_url=None):
         """
         """
@@ -32,27 +31,37 @@ class Ccmp(object):
         self.refresh_token = None
         self.expires = None
         self.token_type = None
-        self.auth = None
-        self.get_token()
+        self.session = None
 
-    def get_token(self):
+    def get_session(self):
         """
         """
         data = {}
         data['username'] = self.username
         data['password'] = self.password
         data['grant_type'] = self.grant_type
-        result = requests.post(self.token_url, data).json()
+        try:
+            result = requests.post(self.token_url, data)
+            result = result.json()
+        except:
+            return result
         self.token = result['access_token']
         self.expires = result['expires_in']
         self.token_type = result['token_type']
         self.refresh_token = result['refresh_token']
-        self.auth = OAuthCcmp(self.token)
+        auth = OAuthCcmp(self.token)
+        self.session = requests.Session()
+        self.session.auth = auth
+        return self
 
-    def get_campaign(self, id_campaign):
+    def get(self, method, **kwargs):
         """
         """
-        session = requests.Session()
-        url = self.base_url + "services2/api/EmailCampaign"
-        params = {'id': id_campaign}
-        return session.get(url, params=params, auth=self.auth).json()
+        url = self.base_url + method
+        return self.session.get(url, params=kwargs).json()
+
+    def post(self, method, data=None, json=None, **kwargs):
+        """
+        """
+        url = self.base_url + method
+        return self.session.post(url, data=kwargs, json=json, **kwargs)
