@@ -64,4 +64,22 @@ class Ccmp(object):
         """
         """
         url = self.base_url + method
-        return self.session.post(url, data=kwargs, json=json, **kwargs)
+        return self.session.post(url, data=data, json=json, **kwargs)
+
+    def put(self, method, url, data=None, **kwargs):
+        """
+        """
+        url = self.base_url + method
+        return self.session.put(url, data=data, **kwargs)
+
+    def patch(self, method, url, data=None, **kwargs):
+        """
+        """
+        url = self.base_url + method
+        return self.session.patch(url, data=data, **kwargs)
+
+    def delete(self, method, url, **kwargs):
+        """
+        """
+        url = self.base_url + method
+        return self.session.delete(url, **kwargs)
